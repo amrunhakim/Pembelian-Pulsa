@@ -1,0 +1,72 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using MySql.Data.MySqlClient;
+
+namespace AppPembelianPulsa
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        MySqlConnection koneksidb = new MySqlConnection("SERVER=localhost;DATABASE=db_beli_pulsa;UID=root;PASSWORD=;"); //buat koneksi ke localhost MySql 
+
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            koneksidb.Open();
+            LoadData();
+            koneksidb.Close();
+        }
+
+        public void LoadData()
+        {
+            MySqlCommand cmd;
+            cmd = koneksidb.CreateCommand();
+            cmd.CommandText = "SELECT * FROM tbl_pulsa"; //koneksikan ke tbl_pulsa
+            MySqlDataAdapter adap = new MySqlDataAdapter(cmd);
+            DataSet ds = new DataSet();
+            adap.Fill(ds);
+            dataGridView1.DataSource = ds.Tables[0].DefaultView; //diload ke datagriedView
+        }
+
+        private void buttonsimpan_Click(object sender, EventArgs e) //tombol SIMPAN
+        {
+            koneksidb.Open();
+            MySqlCommand cmd;
+            cmd = koneksidb.CreateCommand();
+            //Memasukkan data ke tbl_pulsa
+            cmd.CommandText = "INSERT INTO tbl_pulsa (nama_pembeli, nomor_hp, operator, tanggal, jumlah_nominal, jumlah_bayar) VALUES (@nama, @nomor, @operator, @tanggal, @nominal, @bayar)";
+            //Menambahkan parameter
+            cmd.Parameters.AddWithValue("@nama", textnama.Text);
+            cmd.Parameters.AddWithValue("@nomor", textnomor.Text);
+            cmd.Parameters.AddWithValue("@operator", textoperator.Text);
+            cmd.Parameters.AddWithValue("@tanggal", DateTime.Now.ToString("yyyy/M/dd"));//data akan ditampilkan dalam bentuk hari/bulan/tahun
+            cmd.Parameters.AddWithValue("@nominal", textnominal.Text);
+            cmd.Parameters.AddWithValue("@bayar", textbayar.Text);
+            MessageBox.Show("Telah berhasil disimpan"); //Menampilkan pesan setelah berhasil disimpan
+            cmd.ExecuteNonQuery();
+            //textbox akan kembali kosong setelah data berhasil disimpan (Mengklik pop-up)
+            textnama.Text = "";
+            textnomor.Text = "";
+            textoperator.Text = "";
+            textnominal.Text = "";
+            textbayar.Text = "";
+            LoadData();
+            koneksidb.Close(); 
+        }
+
+         
+
+
+    }
+}
